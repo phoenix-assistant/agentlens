@@ -11,7 +11,7 @@ import ReactFlow, {
   MarkerType,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Trace, AgentEvent } from '@agentlens/sdk';
+import { Trace, AgentEvent } from '@phoenixaihub/sdk';
 import { getProviderColor, formatDuration, formatTokens } from '@/lib/utils';
 
 interface TraceFlowDiagramProps {

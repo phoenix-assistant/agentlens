@@ -17,9 +17,9 @@
     "test": "turbo run test",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
-    "collector:dev": "npm run dev -w @agentlens/collector",
-    "dashboard:dev": "npm run dev -w @agentlens/dashboard",
-    "cli:dev": "npm run dev -w @agentlens/cli"
+    "collector:dev": "npm run dev -w @phoenixaihub/collector",
+    "dashboard:dev": "npm run dev -w @phoenixaihub/dashboard",
+    "cli:dev": "npm run dev -w @phoenixaihub/cli"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

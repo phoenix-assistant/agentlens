@@ -5,6 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function formatTokens(num: number): string {
+  return formatNumber(num);
+}
+
 export function formatNumber(num: number): string {
   if (num >= 1_000_000) {
     return (num / 1_000_000).toFixed(1) + 'M';

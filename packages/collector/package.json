@@ -1,5 +1,5 @@
 {
-  "name": "@agentlens/collector",
+  "name": "@phoenixaihub/collector",
   "version": "0.1.0",
   "description": "AgentLens event collector and storage service",
   "main": "./dist/index.js",
@@ -16,7 +16,7 @@
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup src/index.ts src/server.ts --format cjs,esm",
     "dev": "tsup --watch",
     "start": "node dist/server.js",
     "lint": "eslint src/",
@@ -27,7 +27,10 @@
     "@fastify/cors": "^8.0.0",
     "@fastify/rate-limit": "^9.0.0",
     "@fastify/websocket": "^8.0.0",
-    "fastify": "^4.26.0",
+    "@langchain/core": "1.1.39",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "ai": "6.0.146",
+    "fastify": "^5.8.4",
     "pino": "^8.0.0",
     "pino-pretty": "^10.0.0"
   },

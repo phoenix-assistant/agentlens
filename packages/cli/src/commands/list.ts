@@ -47,7 +47,7 @@ const statusChars = {
   running: chalk.yellow('◐'),
 };
 
-const providerColors: Record<string, chalk.Chalk> = {
+const providerColors: Record<string, typeof chalk.green> = {
   openai: chalk.green,
   anthropic: chalk.yellow,
   google: chalk.blue,

@@ -4,13 +4,13 @@
  */
 
 import type Anthropic from '@anthropic-ai/sdk';
-import { AgentLensClient } from '@agentlens/sdk';
+import { AgentLens } from '@agentlens/sdk';
 import { IntegrationOptions, WrappedClient, calculateCost } from './types';
 
 type AnthropicClient = InstanceType<typeof Anthropic>;
 
 export interface AnthropicIntegrationOptions extends IntegrationOptions {
-  client: AgentLensClient;
+  client: AgentLens;
 }
 
 export function wrapAnthropic(

@@ -1,5 +1,5 @@
 {
-  "name": "@agentlens/integrations",
+  "name": "@phoenixaihub/integrations",
   "version": "0.1.0",
   "description": "Framework integrations for AgentLens",
   "main": "./dist/index.js",
@@ -38,13 +38,15 @@
     }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup src/index.ts src/openai.ts src/anthropic.ts src/langchain.ts src/langgraph.ts src/vercel-ai.ts --format cjs,esm",
     "dev": "tsup --watch",
     "lint": "eslint src/",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@agentlens/sdk": "workspace:*"
+    "@phoenixaihub/sdk": "*",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "fastify": "5.8.4"
   },
   "peerDependencies": {
     "@anthropic-ai/sdk": ">=0.20.0",
@@ -54,18 +56,28 @@
     "openai": ">=4.0.0"
   },
   "peerDependenciesMeta": {
-    "@anthropic-ai/sdk": { "optional": true },
-    "@langchain/core": { "optional": true },
-    "@langchain/langgraph": { "optional": true },
-    "ai": { "optional": true },
-    "openai": { "optional": true }
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@langchain/core": {
+      "optional": true
+    },
+    "@langchain/langgraph": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    },
+    "openai": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
-    "@langchain/core": "^0.1.0",
-    "@langchain/langgraph": "^0.0.1",
+    "@langchain/core": "^1.1.39",
+    "@langchain/langgraph": "^1.2.7",
     "@types/node": "^20.0.0",
-    "ai": "^3.0.0",
+    "ai": "^6.0.146",
     "openai": "^4.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0"

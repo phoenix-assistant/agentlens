@@ -4,13 +4,13 @@
  */
 
 import type OpenAI from 'openai';
-import { AgentLensClient } from '@agentlens/sdk';
+import { AgentLens } from '@agentlens/sdk';
 import { IntegrationOptions, WrappedClient, calculateCost } from './types';
 
 type OpenAIClient = InstanceType<typeof OpenAI>;
 
 export interface OpenAIIntegrationOptions extends IntegrationOptions {
-  client: AgentLensClient;
+  client: AgentLens;
 }
 
 export function wrapOpenAI(

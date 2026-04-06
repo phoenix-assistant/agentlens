@@ -2,11 +2,11 @@
  * Common types for integrations
  */
 
-import { AgentLensClient } from '@agentlens/sdk';
+import { AgentLens } from '@agentlens/sdk';
 
 export interface IntegrationOptions {
   /** AgentLens client instance */
-  client: AgentLensClient;
+  client: AgentLens;
   /** Agent ID override */
   agentId?: string;
   /** Agent name override */

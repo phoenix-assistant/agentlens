@@ -3,11 +3,11 @@
  * Middleware for automatic instrumentation of AI SDK calls
  */
 
-import { AgentLensClient, Trace, SpanRecorder } from '@agentlens/sdk';
+import { AgentLens, TraceContext, SpanContext } from '@agentlens/sdk';
 import { IntegrationOptions, calculateCost } from './types';
 
 export interface VercelAIIntegrationOptions extends IntegrationOptions {
-  client: AgentLensClient;
+  client: AgentLens;
 }
 
 interface StreamContext {

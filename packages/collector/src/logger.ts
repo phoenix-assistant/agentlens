@@ -11,3 +11,5 @@ export function createLogger() {
     } : undefined,
   });
 }
+
+export const logger = createLogger();

@@ -1,49 +1,28 @@
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
+/**
+ * agentlens init - Initialize configuration
+ */
+
+import chalk from 'chalk';
+import { saveConfig } from '../config';
 
 export interface InitOptions {
-  endpoint?: string;
-  apiKey?: string;
+  url?: string;
 }
 
-const DEFAULT_CONFIG = {
-  endpoint: 'http://localhost:3100/v1/events',
-  apiKey: '',
-  environment: 'development',
-  defaultTags: {},
-  batching: true,
-  batchSize: 100,
-  flushIntervalMs: 5000,
-  captureHashes: true,
-  enabled: true,
-  debug: false,
-};
-
-export async function initCommand(options: InitOptions): Promise<void> {
-  const configDir = join(homedir(), '.agentlens');
-  const configPath = join(configDir, 'config.json');
-
-  // Create config directory
-  if (!existsSync(configDir)) {
-    mkdirSync(configDir, { recursive: true });
+export async function init(options: InitOptions): Promise<void> {
+  const config: Record<string, string> = {};
+  
+  if (options.url) {
+    config.collectorUrl = options.url;
   }
-
-  // Build config
-  const config = {
-    ...DEFAULT_CONFIG,
-    ...(options.endpoint && { endpoint: options.endpoint }),
-    ...(options.apiKey && { apiKey: options.apiKey }),
-  };
-
-  // Write config
-  writeFileSync(configPath, JSON.stringify(config, null, 2));
-
-  console.log('✓ AgentLens initialized');
-  console.log(`  Config: ${configPath}`);
-  console.log('');
+  
+  saveConfig(config);
+  
+  console.log(chalk.green('✓ AgentLens initialized'));
+  console.log(chalk.dim(`  Config saved to ~/.agentlens.json`));
+  console.log();
   console.log('Next steps:');
   console.log('  1. Start the collector: docker compose up -d');
-  console.log('  2. Wrap your CLI tools: agentlens wrap claude');
-  console.log('  3. Or trace any command: agentlens trace -- your-command');
+  console.log('  2. Wrap CLI tools: agentlens wrap "claude \'hello\'"');
+  console.log('  3. View traces: agentlens list');
 }

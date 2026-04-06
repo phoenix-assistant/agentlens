@@ -1,5 +1,5 @@
 {
-  "name": "@agentlens/cli",
+  "name": "@phoenixaihub/cli",
   "version": "0.1.0",
   "description": "AgentLens CLI for multi-agent observability",
   "type": "module",

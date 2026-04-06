@@ -11,11 +11,11 @@ import type { Serialized } from '@langchain/core/load/serializable';
 import type { LLMResult } from '@langchain/core/outputs';
 import type { ChainValues } from '@langchain/core/utils/types';
 import type { AgentAction, AgentFinish } from '@langchain/core/agents';
-import { AgentLensClient, Trace, SpanRecorder } from '@agentlens/sdk';
+import { AgentLens, TraceContext, SpanContext } from '@agentlens/sdk';
 import { IntegrationOptions, calculateCost } from './types';
 
 export interface LangChainIntegrationOptions extends IntegrationOptions {
-  client: AgentLensClient;
+  client: AgentLens;
 }
 
 interface RunInfo {
@@ -27,7 +27,7 @@ interface RunInfo {
 
 export class AgentLensCallback implements Partial<CallbackHandlerMethods> {
   name = 'AgentLensCallback';
-  private client: AgentLensClient;
+  private client: AgentLens;
   private runs: Map<string, RunInfo> = new Map();
   private options: LangChainIntegrationOptions;
 

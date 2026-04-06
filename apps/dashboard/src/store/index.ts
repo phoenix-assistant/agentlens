@@ -66,11 +66,13 @@ interface AppState {
 
   // UI
   sidebarCollapsed: boolean;
+  sidebarOpen: boolean;
   toggleSidebar: () => void;
 
   // Theme
   theme: 'light' | 'dark' | 'system';
   setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  toggleTheme: () => void;
 
   // Real-time
   realtimeEnabled: boolean;
@@ -107,11 +109,13 @@ export const useStore = create<AppState>()(
 
       // UI
       sidebarCollapsed: false,
-      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      sidebarOpen: true,
+      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed, sidebarOpen: !state.sidebarOpen })),
 
       // Theme
       theme: 'system',
       setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
 
       // Real-time
       realtimeEnabled: true,

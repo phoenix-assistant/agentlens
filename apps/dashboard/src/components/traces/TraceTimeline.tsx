@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Trace, AgentEvent } from '@agentlens/sdk';
+import { Trace, AgentEvent } from '@phoenixaihub/sdk';
 import { cn, formatDuration, getProviderColor } from '@/lib/utils';
 
 interface TraceTimelineProps {

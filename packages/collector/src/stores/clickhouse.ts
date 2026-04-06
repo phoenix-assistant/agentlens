@@ -1,4 +1,4 @@
-import { ClickHouse } from 'clickhouse';
+import { createClient, ClickHouseClient } from '@clickhouse/client';
 import { AgentEvent, Trace, TraceSummary, TraceQuery } from '@agentlens/sdk';
 import { EventStore, Stats, StatsQuery } from './event-store';
 

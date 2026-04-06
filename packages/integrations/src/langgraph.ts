@@ -3,11 +3,11 @@
  * Wrapper for LangGraph state machines with automatic instrumentation
  */
 
-import { AgentLensClient, Trace, SpanRecorder } from '@agentlens/sdk';
+import { AgentLens, TraceContext, SpanContext } from '@agentlens/sdk';
 import { IntegrationOptions, calculateCost } from './types';
 
 export interface LangGraphIntegrationOptions extends IntegrationOptions {
-  client: AgentLensClient;
+  client: AgentLens;
   graphName?: string;
 }
 
