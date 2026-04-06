@@ -141,18 +141,105 @@ const instrumentedModel = middleware.wrapModel(openai('gpt-4o'), 'gpt-4o');
 
 ## CLI Tool
 
+### Installation
+
 ```bash
+# From npm (when published)
 npm install -g @agentlens/cli
 
-# Trace a command
-agentlens trace -- claude "Explain quantum computing"
+# Or from source
+git clone https://github.com/yourusername/agentlens
+cd agentlens
+npm install && npm run build
+npm link ./packages/cli
+```
 
-# Wrap any CLI tool
-agentlens wrap --parser=claude -- claude "Hello"
-agentlens wrap --parser=ollama -- ollama run llama3 "Hello"
+### Initialize
 
-# Initialize config
-agentlens init
+```bash
+agentlens init --url http://localhost:3100
+```
+
+### Wrap AI CLIs with Tracing
+
+```bash
+# Claude CLI
+agentlens wrap "claude 'explain quantum computing'"
+
+# GitHub Copilot
+agentlens wrap "gh copilot suggest 'write a test'"
+
+# Ollama
+agentlens wrap "ollama run llama3 'hello'"
+
+# Any command
+agentlens wrap --name my-agent "python agent.py"
+```
+
+### View Traces in Terminal
+
+```bash
+# Live stream traces
+agentlens tail
+agentlens tail --compact --errors
+
+# List recent traces
+agentlens list
+agentlens list -n 50 --agent my-agent
+
+# View trace details
+agentlens view <trace-id> --events
+```
+
+### Statistics
+
+```bash
+# Summary
+agentlens stats           # Last hour
+agentlens stats --24h     # Last 24 hours
+
+# Breakdowns
+agentlens stats agents    # Per-agent
+agentlens stats models    # Per-model
+agentlens stats providers # Per-provider
+```
+
+### Example Output
+
+```
+$ agentlens stats agents --24h
+
+  🤖 Agents (24h)
+  ──────────────────────────────────────────────────────────────────────
+
+  AGENT                     TRACES    TOKENS      COST    AVG LAT   ERR%
+  ──────────────────────────────────────────────────────────────────────
+  claude-cli                   234      1.2M     $3.42      2.1s   1.2%
+  github-copilot               156      890K     $1.87      1.4s   0.5%
+  my-custom-agent               89      450K     $0.92      3.2s   2.8%
+  ollama-llama3                 67      234K     $0.00      5.1s   0.0%
+```
+
+```
+$ agentlens stats models --24h
+
+  🧠 Models (24h)
+  ───────────────────────────────────────────────────────────────────────────
+
+  MODEL                          TRACES    TOKENS      COST    AVG LAT   ERR%
+  ───────────────────────────────────────────────────────────────────────────
+  claude-3-5-sonnet-20241022        234      1.2M     $3.42      2.1s   1.2%
+  gpt-4-turbo                       156      890K     $1.87      1.4s   0.5%
+  gpt-4o                             89      450K     $0.92      1.8s   0.8%
+  llama3:70b                         67      234K     $0.00      5.1s   0.0%
+```
+
+```
+$ agentlens tail --compact
+
+14:32:01 [SUCCESS] anthropic claude-cli     2.3s 1.2K tok $0.012
+14:32:15 [ERROR  ] openai   copilot         1.1s  800 tok ✗ Rate limit
+14:32:22 [SUCCESS] ollama   llama3          5.2s 2.4K tok $0.000
 ```
 
 ## Architecture

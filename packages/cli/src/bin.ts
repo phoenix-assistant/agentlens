@@ -2,12 +2,18 @@
 /**
  * AgentLens CLI
  * 
+ * Install:
+ *   npm install -g @agentlens/cli
+ * 
  * Commands:
  *   agentlens init                    Initialize config
  *   agentlens tail                    Live stream traces
  *   agentlens list                    List recent traces
  *   agentlens view <id>               View trace details
- *   agentlens stats                   Show statistics
+ *   agentlens stats                   Show summary stats
+ *   agentlens stats agents            Per-agent breakdown
+ *   agentlens stats models            Per-model breakdown
+ *   agentlens stats providers         Per-provider breakdown
  *   agentlens wrap <cmd>              Wrap and trace a command
  */
 
@@ -62,10 +68,10 @@ program
   .option('--events', 'Show all events')
   .action(view);
 
-// Stats
-program
-  .command('stats')
-  .description('Show statistics')
+// Stats with subcommands
+const statsCmd = program
+  .command('stats [subcommand]')
+  .description('Show statistics (subcommands: agents, models, providers)')
   .option('--1h', 'Last hour (default)')
   .option('--24h', 'Last 24 hours')
   .option('--7d', 'Last 7 days')
@@ -73,7 +79,7 @@ program
   .option('--days <n>', 'Custom days')
   .option('-a, --agent <id>', 'Filter by agent')
   .option('--json', 'Output as JSON')
-  .action((opts) => {
+  .action((subcommand, opts) => {
     let hours: number | undefined;
     let days: number | undefined;
     if (opts['24h']) hours = 24;
@@ -81,7 +87,7 @@ program
     else if (opts.hours) hours = parseInt(opts.hours);
     else if (opts.days) days = parseInt(opts.days);
     else hours = 1;
-    stats({ hours, days, agent: opts.agent, json: opts.json });
+    stats({ hours, days, agent: opts.agent, json: opts.json }, subcommand);
   });
 
 // Wrap command
