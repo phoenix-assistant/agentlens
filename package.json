@@ -5,7 +5,7 @@
   "description": "Multi-Agent Orchestration Dashboard - Visualize, debug, and optimize your AI agent workflows",
   "repository": {
     "type": "git",
-    "url": "https://github.com/agentlens/agentlens"
+    "url": "https://github.com/phoenix-assistant/agentlens"
   },
   "workspaces": [
     "packages/*",
