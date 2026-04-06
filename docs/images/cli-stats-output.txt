@@ -1,0 +1,24 @@
+$ agentlens stats agents --24h
+
+  🤖 Agents (24h)
+  ──────────────────────────────────────────────────────────────────────
+
+  AGENT                     TRACES    TOKENS      COST    AVG LAT   ERR%
+  ──────────────────────────────────────────────────────────────────────
+  research-agent               234      1.2M     $3.42      2.1s   1.2%
+  code-review-agent            156      890K     $1.87      1.4s   0.5%
+  planning-agent                89      450K     $0.92      3.2s   2.8%
+  local-summarizer              67      234K     $0.00      5.1s   0.0%
+  ──────────────────────────────────────────────────────────────────────
+  TOTAL                        546      2.8M     $6.21      2.5s   1.1%
+
+$ agentlens tail --compact
+
+14:32:01 [SUCCESS] anthropic research-agent  2.3s 1.2K tok $0.012
+14:32:15 [ERROR  ] openai   planning-agent   1.1s  800 tok ✗ Rate limit
+14:32:22 [SUCCESS] ollama   local-summarizer 5.2s 2.4K tok $0.000
+14:32:45 [SUCCESS] anthropic code-review     4.1s 3.9K tok $0.038
+14:33:01 [SUCCESS] openai   research-agent   1.8s 2.1K tok $0.021
+
+$ agentlens q stats
+Traces: 546 | Tokens: 2.8M | Cost: $6.21 | Latency: 2.5s | Errors: 1.1%
