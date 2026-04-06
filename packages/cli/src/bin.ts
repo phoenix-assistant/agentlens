@@ -25,6 +25,7 @@ import { view } from './commands/view';
 import { stats } from './commands/stats';
 import { wrap } from './commands/wrap';
 import { trace } from './commands/trace';
+import { quick } from './commands/quick';
 
 program
   .name('agentlens')
@@ -105,5 +106,14 @@ program
   .option('-n, --name <name>', 'Agent name')
   .option('-p, --provider <provider>', 'Provider override')
   .action((command, opts) => trace(command.join(' '), opts));
+
+// Quick inline commands (for use inside AI agent sessions)
+program
+  .command('q <cmd>')
+  .alias('quick')
+  .description('Quick inline commands: stats, traces, errors, agents, models, cost')
+  .option('--hours <n>', 'Time range in hours', '24')
+  .option('--json', 'Output as JSON')
+  .action((cmd, opts) => quick(cmd, { hours: parseInt(opts.hours), json: opts.json }));
 
 program.parse();

@@ -139,6 +139,63 @@ const middleware = createAgentLensMiddleware({ client: lens });
 const instrumentedModel = middleware.wrapModel(openai('gpt-4o'), 'gpt-4o');
 ```
 
+## In-Session Usage (Claude Code, Codex, Copilot)
+
+AgentLens can be queried **from inside** your AI coding session — no need to exit.
+
+### Option 1: MCP Server (Claude Code)
+
+```bash
+# Add to Claude Code
+claude mcp add agentlens -- npx @agentlens/mcp
+
+# Or in ~/.config/claude/claude_desktop_config.json
+{
+  "mcpServers": {
+    "agentlens": {
+      "command": "npx",
+      "args": ["@agentlens/mcp"]
+    }
+  }
+}
+```
+
+Then inside Claude Code, the agent can call tools like:
+- `agentlens_stats` — Get summary stats
+- `agentlens_agents` — Per-agent breakdown
+- `agentlens_models` — Per-model breakdown  
+- `agentlens_traces` — List recent traces
+- `agentlens_errors` — List recent errors
+
+### Option 2: Quick Shell Commands (Any Agent)
+
+Agents that can run shell commands (Codex, Copilot, Cursor, etc.) can use:
+
+```bash
+# One-liner stats
+agentlens q stats
+# Output: Traces: 234 | Tokens: 1.2M | Cost: $3.42 | Latency: 2.1s | Errors: 1.2%
+
+# Recent traces
+agentlens q traces
+
+# Recent errors  
+agentlens q errors
+
+# Per-agent breakdown
+agentlens q agents
+
+# Per-model breakdown
+agentlens q models
+
+# Just the cost
+agentlens q cost
+```
+
+These are designed to be fast, minimal output, perfect for inline agent use.
+
+---
+
 ## CLI Tool
 
 ### Installation
