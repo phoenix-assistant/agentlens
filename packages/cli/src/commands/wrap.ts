@@ -1,132 +1,207 @@
-import { writeFileSync, readFileSync, existsSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
+/**
+ * agentlens wrap - Wrap CLI commands with tracing
+ * 
+ * Usage:
+ *   agentlens wrap "claude 'explain this code'"
+ *   agentlens wrap "gh copilot suggest 'write a test'"
+ *   agentlens wrap "ollama run llama3 'hello'"
+ *   agentlens wrap --name my-agent "python agent.py"
+ */
 
-export interface WrapOptions {
-  shell: string;
-  uninstall?: boolean;
+import { spawn } from 'child_process';
+import chalk from 'chalk';
+import { nanoid } from 'nanoid';
+import { getConfig } from '../config';
+import { parseClaudeOutput } from '../parsers/claude';
+import { parseOllamaOutput } from '../parsers/ollama';
+import { parseCopilotOutput } from '../parsers/copilot';
+
+interface WrapOptions {
+  name?: string;
+  provider?: string;
 }
 
-const WRAPPERS: Record<string, { alias: string; description: string }> = {
-  claude: {
-    alias: 'claude="agentlens trace --name claude --provider anthropic --json -- claude"',
-    description: 'Claude CLI (Anthropic)',
-  },
-  ollama: {
-    alias: 'ollama="agentlens trace --name ollama --provider ollama -- ollama"',
-    description: 'Ollama (Local LLMs)',
-  },
-  'gh-copilot': {
-    alias:
-      'alias ghc="agentlens trace --name gh-copilot --provider openai -- gh copilot"',
-    description: 'GitHub Copilot CLI',
-  },
-};
-
-const SHELL_CONFIGS: Record<string, string> = {
-  bash: '.bashrc',
-  zsh: '.zshrc',
-  fish: '.config/fish/config.fish',
-};
-
-export async function wrapCommand(
-  tool: string,
-  options: WrapOptions
-): Promise<void> {
-  const wrapper = WRAPPERS[tool];
-
-  if (!wrapper) {
-    console.error(`Unknown tool: ${tool}`);
-    console.log('Available tools:', Object.keys(WRAPPERS).join(', '));
-    process.exit(1);
-  }
-
-  const configFile = SHELL_CONFIGS[options.shell];
-  if (!configFile) {
-    console.error(`Unknown shell: ${options.shell}`);
-    console.log('Available shells:', Object.keys(SHELL_CONFIGS).join(', '));
-    process.exit(1);
-  }
-
-  const configPath = join(homedir(), configFile);
-  const aliasLine = `alias ${wrapper.alias}`;
-  const marker = `# AgentLens: ${tool}`;
-  const fullLine = `${marker}\n${aliasLine}`;
-
-  if (options.uninstall) {
-    uninstallWrapper(configPath, marker);
-    console.log(`✓ Removed ${tool} wrapper from ${configPath}`);
-    console.log(`  Run 'source ${configPath}' or restart your shell`);
-    return;
-  }
-
-  installWrapper(configPath, fullLine, marker);
-  console.log(`✓ Installed ${tool} wrapper (${wrapper.description})`);
-  console.log(`  Added to ${configPath}:`);
-  console.log(`    ${aliasLine}`);
-  console.log(`  Run 'source ${configPath}' or restart your shell`);
+interface TraceData {
+  traceId: string;
+  agentId: string;
+  agentName: string;
+  provider: string;
+  model?: string;
+  startTime: Date;
+  endTime?: Date;
+  inputTokens?: number;
+  outputTokens?: number;
+  status: 'running' | 'success' | 'error';
+  errorMessage?: string;
+  rawOutput: string;
 }
 
-function installWrapper(
-  configPath: string,
-  fullLine: string,
-  marker: string
-): void {
-  let content = '';
+function detectProvider(command: string): { provider: string; agentName: string } {
+  const cmd = command.toLowerCase();
+  
+  if (cmd.startsWith('claude ') || cmd.includes('/claude')) {
+    return { provider: 'anthropic', agentName: 'claude-cli' };
+  }
+  if (cmd.includes('gh copilot') || cmd.includes('github copilot')) {
+    return { provider: 'openai', agentName: 'github-copilot' };
+  }
+  if (cmd.startsWith('ollama ') || cmd.includes('/ollama')) {
+    return { provider: 'ollama', agentName: 'ollama-cli' };
+  }
+  if (cmd.includes('openai') || cmd.includes('chatgpt')) {
+    return { provider: 'openai', agentName: 'openai-cli' };
+  }
+  if (cmd.includes('gemini') || cmd.includes('bard')) {
+    return { provider: 'google', agentName: 'gemini-cli' };
+  }
+  
+  return { provider: 'custom', agentName: 'cli-agent' };
+}
 
-  if (existsSync(configPath)) {
-    content = readFileSync(configPath, 'utf-8');
+function parseOutput(output: string, provider: string): Partial<TraceData> {
+  switch (provider) {
+    case 'anthropic':
+      return parseClaudeOutput(output);
+    case 'ollama':
+      return parseOllamaOutput(output);
+    case 'openai':
+      return parseCopilotOutput(output);
+    default:
+      return {};
+  }
+}
 
-    // Check if already installed
-    if (content.includes(marker)) {
-      // Replace existing
-      const lines = content.split('\n');
-      const newLines: string[] = [];
-      let skip = false;
+async function sendTrace(trace: TraceData): Promise<void> {
+  const config = getConfig();
+  
+  try {
+    const response = await fetch(`${config.collectorUrl}/v1/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        events: [
+          {
+            id: nanoid(),
+            trace_id: trace.traceId,
+            span_id: nanoid(),
+            timestamp: trace.startTime.toISOString(),
+            event_type: 'agent_start',
+            agent: {
+              id: trace.agentId,
+              name: trace.agentName,
+            },
+            context: {
+              provider: trace.provider,
+              model: trace.model,
+              environment: 'cli',
+            },
+          },
+          {
+            id: nanoid(),
+            trace_id: trace.traceId,
+            span_id: nanoid(),
+            timestamp: (trace.endTime || new Date()).toISOString(),
+            event_type: 'agent_end',
+            agent: {
+              id: trace.agentId,
+              name: trace.agentName,
+            },
+            context: {
+              provider: trace.provider,
+              model: trace.model,
+            },
+            output: {
+              status: trace.status,
+              completion_tokens: trace.outputTokens,
+              total_tokens: (trace.inputTokens || 0) + (trace.outputTokens || 0),
+            },
+            metrics: {
+              latency_ms: trace.endTime ? trace.endTime.getTime() - trace.startTime.getTime() : 0,
+              input_tokens: trace.inputTokens,
+              output_tokens: trace.outputTokens,
+            },
+            error: trace.errorMessage ? { message: trace.errorMessage } : undefined,
+          },
+        ],
+      }),
+    });
 
-      for (const line of lines) {
-        if (line.includes(marker)) {
-          skip = true;
-          newLines.push(fullLine);
-        } else if (skip && line.startsWith('alias ')) {
-          skip = false;
-        } else if (!skip) {
-          newLines.push(line);
-        }
-      }
-
-      content = newLines.join('\n');
-    } else {
-      // Append
-      content = content.trimEnd() + '\n\n' + fullLine + '\n';
+    if (!response.ok) {
+      console.error(chalk.dim(`Warning: Failed to send trace (HTTP ${response.status})`));
     }
-  } else {
-    content = fullLine + '\n';
+  } catch (err: any) {
+    console.error(chalk.dim(`Warning: Could not send trace: ${err.message}`));
   }
-
-  writeFileSync(configPath, content);
 }
 
-function uninstallWrapper(configPath: string, marker: string): void {
-  if (!existsSync(configPath)) {
-    console.log(`Config file not found: ${configPath}`);
-    return;
-  }
+export async function wrap(command: string, options: WrapOptions): Promise<void> {
+  const { provider, agentName } = detectProvider(command);
+  
+  const trace: TraceData = {
+    traceId: nanoid(),
+    agentId: options.name || agentName,
+    agentName: options.name || agentName,
+    provider: options.provider || provider,
+    startTime: new Date(),
+    status: 'running',
+    rawOutput: '',
+  };
 
-  const content = readFileSync(configPath, 'utf-8');
-  const lines = content.split('\n');
-  const newLines: string[] = [];
-  let skip = false;
+  console.error(chalk.dim(`[agentlens] Tracing ${trace.provider}/${trace.agentName} (${trace.traceId.slice(0, 8)})`));
 
-  for (const line of lines) {
-    if (line.includes(marker)) {
-      skip = true;
-    } else if (skip && line.startsWith('alias ')) {
-      skip = false;
-    } else if (!skip) {
-      newLines.push(line);
+  const child = spawn(command, {
+    shell: true,
+    stdio: ['inherit', 'pipe', 'pipe'],
+  });
+
+  let stdout = '';
+  let stderr = '';
+
+  child.stdout?.on('data', (data) => {
+    const text = data.toString();
+    stdout += text;
+    process.stdout.write(text);
+  });
+
+  child.stderr?.on('data', (data) => {
+    const text = data.toString();
+    stderr += text;
+    process.stderr.write(text);
+  });
+
+  child.on('close', async (code) => {
+    trace.endTime = new Date();
+    trace.rawOutput = stdout + stderr;
+    trace.status = code === 0 ? 'success' : 'error';
+    
+    if (code !== 0) {
+      trace.errorMessage = `Process exited with code ${code}`;
     }
-  }
 
-  writeFileSync(configPath, newLines.join('\n'));
+    // Parse output for token counts, model info, etc.
+    const parsed = parseOutput(trace.rawOutput, trace.provider);
+    Object.assign(trace, parsed);
+
+    // Send trace to collector
+    await sendTrace(trace);
+
+    const duration = trace.endTime.getTime() - trace.startTime.getTime();
+    const durationStr = duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(1)}s`;
+
+    console.error(chalk.dim(`[agentlens] Completed in ${durationStr}`));
+    console.error(chalk.dim(`[agentlens] View: agentlens view ${trace.traceId}`));
+
+    process.exit(code || 0);
+  });
+
+  child.on('error', async (err) => {
+    trace.endTime = new Date();
+    trace.status = 'error';
+    trace.errorMessage = err.message;
+
+    await sendTrace(trace);
+
+    console.error(chalk.red(`[agentlens] Error: ${err.message}`));
+    process.exit(1);
+  });
 }
