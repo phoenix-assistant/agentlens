@@ -1,0 +1,32 @@
+{
+  "name": "agentlens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-Agent Orchestration Dashboard - Visualize, debug, and optimize your AI agent workflows",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentlens/agentlens"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "collector:dev": "npm run dev -w @agentlens/collector",
+    "dashboard:dev": "npm run dev -w @agentlens/dashboard",
+    "cli:dev": "npm run dev -w @agentlens/cli"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.0.0"
+}

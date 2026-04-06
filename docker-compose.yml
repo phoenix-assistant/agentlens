@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # ClickHouse for event storage
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: agentlens-clickhouse
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native interface
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - clickhouse-logs:/var/log/clickhouse-server
+    environment:
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-}
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agentlens
+
+  # AgentLens Collector API
+  collector:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.collector
+    container_name: agentlens-collector
+    ports:
+      - "3100:3100"
+    environment:
+      - PORT=3100
+      - HOST=0.0.0.0
+      - STORE_TYPE=clickhouse
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_DATABASE=agentlens
+      - CLICKHOUSE_USERNAME=${CLICKHOUSE_USER:-default}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-}
+      - API_KEYS=${API_KEYS:-}
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agentlens
+
+  # AgentLens Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dashboard
+    container_name: agentlens-dashboard
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=http://collector:3100
+    depends_on:
+      - collector
+    networks:
+      - agentlens
+
+  # Redis for caching and pub/sub (optional, for scaling)
+  redis:
+    image: redis:7-alpine
+    container_name: agentlens-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - agentlens
+    profiles:
+      - with-redis
+
+  # Grafana for advanced dashboards (optional)
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: agentlens-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
+    depends_on:
+      - clickhouse
+    networks:
+      - agentlens
+    profiles:
+      - with-grafana
+
+volumes:
+  clickhouse-data:
+  clickhouse-logs:
+  redis-data:
+  grafana-data:
+
+networks:
+  agentlens:
+    driver: bridge

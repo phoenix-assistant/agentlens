@@ -1,0 +1,73 @@
+{
+  "name": "@agentlens/integrations",
+  "version": "0.1.0",
+  "description": "Framework integrations for AgentLens",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./langchain": {
+      "import": "./dist/langchain.mjs",
+      "require": "./dist/langchain.js",
+      "types": "./dist/langchain.d.ts"
+    },
+    "./langgraph": {
+      "import": "./dist/langgraph.mjs",
+      "require": "./dist/langgraph.js",
+      "types": "./dist/langgraph.d.ts"
+    },
+    "./openai": {
+      "import": "./dist/openai.mjs",
+      "require": "./dist/openai.js",
+      "types": "./dist/openai.d.ts"
+    },
+    "./anthropic": {
+      "import": "./dist/anthropic.mjs",
+      "require": "./dist/anthropic.js",
+      "types": "./dist/anthropic.d.ts"
+    },
+    "./vercel-ai": {
+      "import": "./dist/vercel-ai.mjs",
+      "require": "./dist/vercel-ai.js",
+      "types": "./dist/vercel-ai.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@agentlens/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.20.0",
+    "@langchain/core": ">=0.1.0",
+    "@langchain/langgraph": ">=0.0.1",
+    "ai": ">=3.0.0",
+    "openai": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": { "optional": true },
+    "@langchain/core": { "optional": true },
+    "@langchain/langgraph": { "optional": true },
+    "ai": { "optional": true },
+    "openai": { "optional": true }
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "@langchain/core": "^0.1.0",
+    "@langchain/langgraph": "^0.0.1",
+    "@types/node": "^20.0.0",
+    "ai": "^3.0.0",
+    "openai": "^4.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}

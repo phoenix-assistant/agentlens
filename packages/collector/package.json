@@ -1,0 +1,40 @@
+{
+  "name": "@agentlens/collector",
+  "version": "0.1.0",
+  "description": "AgentLens event collector and storage service",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "agentlens-collector": "./dist/server.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "start": "node dist/server.js",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@clickhouse/client": "^0.2.0",
+    "@fastify/cors": "^8.0.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "@fastify/websocket": "^8.0.0",
+    "fastify": "^4.26.0",
+    "pino": "^8.0.0",
+    "pino-pretty": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
+  }
+}

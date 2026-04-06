@@ -1,0 +1,37 @@
+{
+  "name": "@agentlens/sdk",
+  "version": "0.1.0",
+  "description": "AgentLens SDK - Event schema and client library",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./schema": {
+      "import": "./dist/schema.mjs",
+      "require": "./dist/schema.js",
+      "types": "./dist/schema.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/schema.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts src/schema.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "nanoid": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "vitest": "^1.6.0",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

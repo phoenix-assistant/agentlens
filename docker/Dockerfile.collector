@@ -1,0 +1,45 @@
+# AgentLens Collector Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# Copy package files
+COPY package.json pnpm-workspace.yaml turbo.json ./
+COPY packages/collector/package.json ./packages/collector/
+COPY packages/sdk/package.json ./packages/sdk/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source
+COPY packages/sdk ./packages/sdk
+COPY packages/collector ./packages/collector
+
+# Build
+RUN pnpm turbo build --filter=@agentlens/collector
+
+# Production image
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# Copy built artifacts
+COPY --from=builder /app/packages/collector/dist ./dist
+COPY --from=builder /app/packages/collector/package.json ./
+COPY --from=builder /app/node_modules ./node_modules
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+ENV PORT=3100
+
+EXPOSE 3100
+
+CMD ["node", "dist/server.js"]
