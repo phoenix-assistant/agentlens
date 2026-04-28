@@ -26,6 +26,7 @@ import { stats } from './commands/stats';
 import { wrap } from './commands/wrap';
 import { trace } from './commands/trace';
 import { quick } from './commands/quick';
+import { proxyCommand } from './commands/proxy';
 
 program
   .name('agentlens')
@@ -115,5 +116,14 @@ program
   .option('--hours <n>', 'Time range in hours', '24')
   .option('--json', 'Output as JSON')
   .action((cmd, opts) => quick(cmd, { hours: parseInt(opts.hours), json: opts.json }));
+
+// Proxy
+program
+  .command('proxy <action>')
+  .description('Manage the AI API proxy (start, stop, status, setup)')
+  .option('-p, --port <port>', 'Proxy port (default: 8877)')
+  .option('-s, --shell', 'Output shell-eval format')
+  .option('-c, --collector-url <url>', 'Collector URL')
+  .action((action, opts) => proxyCommand(action, opts));
 
 program.parse();
